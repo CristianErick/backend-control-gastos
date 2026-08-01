@@ -28,4 +28,4 @@ RUN chown -R www-data:www-data /var/www/html \
 
 EXPOSE $PORT
 
-CMD ["sh", "-c", "mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views && php artisan migrate --force --seed; echo '--- APP STARTED on port $PORT ---' && php artisan serve --host=0.0.0.0 --port=$PORT"]
+CMD ["sh", "-c", "mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views && php artisan config:clear; echo 'DATABASE_URL set:'; [ -n \"$DATABASE_URL\" ] && echo 'YES' || echo 'NO'; php artisan migrate --force --seed; echo '--- APP STARTED on port $PORT ---' && php artisan serve --host=0.0.0.0 --port=$PORT"]
