@@ -155,16 +155,57 @@ class DemoDataSeeder extends Seeder
     private function seedAdminData(int $adminId, array $cat): void
     {
         $now = now();
+
+        $incomeDescs = [
+            'Sueldo mensual', 'Salario a tiempo', 'Sueldo administrador', 'Sueldo a tiempo',
+        ];
+        $expensePools = [
+            ['Alimentación', [60, 85, 110, 70, 95, 130]],
+            ['Transporte', [20, 25, 35, 40, 22]],
+            ['Servicios', [90, 120, 100, 140]],
+            ['Entretenimiento', [50, 70, 30]],
+            ['Salud', [40, 180, 25]],
+            ['Electricidad', [80, 95, 70]],
+        ];
+
         for ($i = 11; $i >= 0; $i--) {
             $month = $now->copy()->subMonths($i);
+
+            $salary = 3200 + $i % 2 * 300;
             Transaction::create([
                 'user_id' => $adminId,
                 'category_id' => $cat['Salario'],
-                'amount' => 3200,
-                'description' => 'Sueldo administrador',
+                'amount' => $salary,
+                'description' => $incomeDescs[$i % count($incomeDescs)],
                 'date' => $month->copy()->startOfMonth()->addDays(1),
                 'type' => 'income',
             ]);
+
+            if ($i % 2 === 0) {
+                Transaction::create([
+                    'user_id' => $adminId,
+                    'category_id' => $cat['Inversiones'],
+                    'amount' => rand(400, 900),
+                    'description' => 'Dividendos / renta',
+                    'date' => $month->copy()->addDays(rand(6, 22)),
+                    'type' => 'income',
+                ]);
+            }
+
+            $day = 3;
+            foreach ($expensePools as [$cname, $amounts]) {
+                foreach ($amounts as $amt) {
+                    Transaction::create([
+                        'user_id' => $adminId,
+                        'category_id' => $cat[$cname],
+                        'amount' => $amt,
+                        'description' => $this->descFor($cname),
+                        'date' => $month->copy()->addDays(min($day, 27)),
+                        'type' => 'expense',
+                    ]);
+                    $day += 2;
+                }
+            }
         }
     }
 
