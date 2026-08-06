@@ -47,7 +47,10 @@ class TransactionController extends Controller
                 'description' => 'required|string|max:500',
                 'date' => 'required|date',
                 'type' => 'required|in:income,expense',
+                'reference_image' => 'nullable|string',
             ]);
+
+            $validated['reference_image'] = $this->sanitizeReferenceImage($request->input('reference_image'));
 
             $transaction = $request->user()->transactions()->create($validated);
 
@@ -88,7 +91,10 @@ class TransactionController extends Controller
                 'description' => 'required|string|max:500',
                 'date' => 'required|date',
                 'type' => 'required|in:income,expense',
+                'reference_image' => 'nullable|string',
             ]);
+
+            $validated['reference_image'] = $this->sanitizeReferenceImage($request->input('reference_image'));
 
             $transaction->update($validated);
 
@@ -116,5 +122,14 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al eliminar transacción.', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    private function sanitizeReferenceImage(?string $image): ?string
+    {
+        if ($image === null || trim($image) === '') {
+            return null;
+        }
+
+        return str_starts_with($image, 'data:image/') ? $image : null;
     }
 }

@@ -46,4 +46,32 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Error al actualizar perfil.', 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function updateAvatar(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'avatar' => 'required|string',
+            ]);
+
+            $avatar = $validated['avatar'];
+
+            if (!str_starts_with($avatar, 'data:image/')) {
+                return response()->json(['message' => 'El avatar debe ser una imagen en base64.'], 422);
+            }
+
+            $user = $request->user();
+            $user->avatar = $avatar;
+            $user->save();
+
+            return response()->json([
+                'message' => 'Foto de perfil actualizada exitosamente.',
+                'user' => $user->fresh()->load('profile'),
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Error de validación.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al actualizar la foto de perfil.', 'error' => $e->getMessage()], 500);
+        }
+    }
 }
