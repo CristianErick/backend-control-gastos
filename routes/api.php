@@ -20,6 +20,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/user/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::put('/user/name', [ProfileController::class, 'updateName']);
+    Route::put('/user/password', [ProfileController::class, 'updatePassword']);
 
     Route::get('/dashboard/stats', [DashboardController::class, 'obtenerEstadisticas']);
 
