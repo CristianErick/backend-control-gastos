@@ -32,7 +32,7 @@ class ProfileController extends Controller
             $profile = $user->profile;
 
             if (!$profile) {
-                return response()->json(['message' => 'Perfil no encontrado.'], 404);
+                $profile = $user->profile()->create(['currency' => 'PEN']);
             }
 
             $profile->update($validated);

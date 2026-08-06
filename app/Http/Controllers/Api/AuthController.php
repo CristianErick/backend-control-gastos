@@ -59,6 +59,9 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
+            if (!$user->profile) {
+                $user->profile()->create(['currency' => 'PEN']);
+            }
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
@@ -134,6 +137,10 @@ class AuthController extends Controller
                 if (!empty($updates)) {
                     $user->update($updates);
                 }
+            }
+
+            if (!$user->profile) {
+                $user->profile()->create(['currency' => 'PEN']);
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;
