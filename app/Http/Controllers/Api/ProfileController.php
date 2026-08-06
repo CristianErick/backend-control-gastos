@@ -9,11 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
-    public function show(Request $request): JsonResponse
+public function show(Request $request): JsonResponse
     {
         try {
             $user = $request->user()->load('profile');
-            return response()->json(['user' => $user], 200);
+
+            if (!$user->profile) {
+                $user->profile()->create(['currency' => 'PEN']);
+            }
+
+            return response()->json(['user' => $user->fresh()->load('profile')], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al obtener perfil.', 'error' => $e->getMessage()], 500);
         }
