@@ -12,7 +12,26 @@ class SavingsGoalController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $goals = $request->user()->savingsGoals()->orderBy('deadline')->get();
+            $user = $request->user();
+            $goals = $user->savingsGoals()->orderBy('deadline')->get();
+
+            $monthStart = now()->startOfMonth();
+            $monthlyIncome = (float) $user->transactions()
+                ->where('type', 'income')
+                ->where('date', '>=', $monthStart)
+                ->sum('amount');
+
+            $monthlyExpense = (float) $user->transactions()
+                ->where('type', 'expense')
+                ->where('date', '>=', $monthStart)
+                ->sum('amount');
+
+            $monthlyBalance = $monthlyIncome - $monthlyExpense;
+
+            $goals->each(function ($goal) use ($monthlyBalance) {
+                $goal->current_amount = $monthlyBalance;
+            });
+
             return response()->json(['savings_goals' => $goals], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al listar metas.', 'error' => $e->getMessage()], 500);
