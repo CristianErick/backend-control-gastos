@@ -21,6 +21,7 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'role',
+        'suspended',
     ];
 
     protected $hidden = [
@@ -31,6 +32,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'suspended' => 'boolean',
     ];
 
     public function profile()

@@ -39,10 +39,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stats', [AdminController::class, 'stats']);
         Route::get('/users', [AdminController::class, 'users']);
         Route::put('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus']);
+        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::put('/users/{id}/role', [AdminController::class, 'updateUserRole']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
         Route::get('/categories', [AdminController::class, 'categories']);
         Route::post('/categories', [AdminController::class, 'storeCategory']);
         Route::put('/categories/{category}', [AdminController::class, 'updateCategory']);
         Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory']);
         Route::get('/transactions', [AdminController::class, 'transactions']);
+        Route::post('/reset-demo', [AdminController::class, 'resetDemoData']);
     });
 });

@@ -62,6 +62,12 @@ class AuthController extends Controller
             if (!$user->profile) {
                 $user->profile()->create(['currency' => 'PEN']);
             }
+            if ($user->suspended) {
+                Auth::logout();
+                return response()->json([
+                    'message' => 'Tu cuenta ha sido suspendida. Contacta al administrador.',
+                ], 403);
+            }
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
@@ -141,6 +147,12 @@ class AuthController extends Controller
 
             if (!$user->profile) {
                 $user->profile()->create(['currency' => 'PEN']);
+            }
+
+            if ($user->suspended) {
+                return response()->json([
+                    'message' => 'Tu cuenta ha sido suspendida. Contacta al administrador.',
+                ], 403);
             }
 
             $token = $user->createToken('auth-token')->plainTextToken;

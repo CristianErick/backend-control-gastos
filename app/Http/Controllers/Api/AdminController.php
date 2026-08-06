@@ -25,10 +25,81 @@ class AdminController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            // Toggle suspended status (you'd need a suspended column, for now just return user)
-            return response()->json(['message' => 'Estado actualizado.', 'user' => $user], 200);
+            $user->suspended = !$user->suspended;
+            $user->save();
+            return response()->json([
+                'message' => 'Estado actualizado.',
+                'user' => $user,
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al cambiar estado.'], 500);
+        }
+    }
+
+    public function updateUser(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'password' => 'nullable|string|min:8',
+            ]);
+
+            $updates = ['name' => $validated['name']];
+            if (!empty($validated['password'])) {
+                $updates['password'] = $validated['password'];
+            }
+            $user->update($updates);
+
+            return response()->json(['message' => 'Usuario actualizado.', 'user' => $user->load('profile')], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Error de validación.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al actualizar usuario.'], 500);
+        }
+    }
+
+    public function updateUserRole(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->id === $request->user()->id) {
+                return response()->json(['message' => 'No puedes modificar tu propio rol.'], 403);
+            }
+
+            $validated = $request->validate([
+                'role' => 'required|in:cliente,administrador',
+            ]);
+
+            $user->update(['role' => $validated['role']]);
+
+            return response()->json(['message' => 'Rol actualizado.', 'user' => $user], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Error de validación.', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al actualizar rol.'], 500);
+        }
+    }
+
+    public function deleteUser(Request $request, int $id): JsonResponse
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($user->id === 1 || (string) $user->id === (string) $request->user()->id) {
+                return response()->json(['message' => 'No puedes eliminar la cuenta principal de administrador.'], 403);
+            }
+
+            $user->transactions()->delete();
+            $user->savingsGoals()->delete();
+            $user->profile()->delete();
+            $user->delete();
+
+            return response()->json(['message' => 'Usuario eliminado.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al eliminar usuario.'], 500);
         }
     }
 
@@ -116,6 +187,27 @@ class AdminController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al obtener estadísticas.'], 500);
+        }
+    }
+
+    public function resetDemoData(Request $request): JsonResponse
+    {
+        try {
+            $expected = env('DEMO_RESET_KEY', 'optigas-demo-2026');
+            $provided = (string) $request->header('X-Demo-Key', '');
+
+            if ($provided !== $expected) {
+                return response()->json(['message' => 'Clave de reseteo inválida.'], 403);
+            }
+
+            \Illuminate\Support\Facades\Artisan::call('db:seed', [
+                '--class' => \Database\Seeders\DemoDataSeeder::class,
+                '--force' => true,
+            ]);
+
+            return response()->json(['message' => 'Datos demo regenerados.'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al regenerar datos demo.', 'error' => $e->getMessage()], 500);
         }
     }
 }
